@@ -1,5 +1,5 @@
-import { MonoTypeOperatorFunction } from 'rxjs'
-import { retryWhen, mergeMap, throwError } from 'rxjs/operators'
+import { MonoTypeOperatorFunction, timer, throwError, Observable } from 'rxjs'
+import { retryWhen, mergeMap } from 'rxjs/operators'
 
 
 export interface RetryOptions {
@@ -7,17 +7,6 @@ export interface RetryOptions {
   delay?: number;
   canRetryPredicate: (err: any) => boolean
 }
-
-export interface NGRetryOptions extends RetryOptions {
-  codesToRetryOn?: Array<number>;
-  canRetryPredicate(err: any) {
-    const status = err?.status ?? -1
-    const safeCodes = this.codesToRetryOn ?? []
-    if(safeCodes.length === 0) return false
-    return safeCodes.includes(status)
-  }
-}
-
 
 function decideIfCanRetry(
   error: any,
@@ -65,8 +54,6 @@ function decideIfCanRetry(
 export function retryWith<T, Opts extends RetryOptions>(options: Opts): MonoTypeOperatorFunction<T> {
     // If unspecified, don't delay between retries
     const delay = options.delay ?? 0;
-    // If unspecified, don't match any statusCode
-    const userSpecifiedRetryCodes = options.codesToRetryOn != null && options.codesToRetryOn.length > 0;
     // If unspecified default to one retry .
     const maxRetryTimes = options.retryTimes ?? 1;
 
