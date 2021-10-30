@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "description": "A very small set of RxJs utilities that I often use on my Angular apps",
   "main": "index.ts",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "start": "nodemon --exec ts-node src/index.ts",
     "build": "npx tsc -p .",
