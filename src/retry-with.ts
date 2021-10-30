@@ -3,55 +3,55 @@ import { retryWhen, mergeMap, throwError } from 'rxjs/operators'
 
 
 export interface RetryOptions {
-    retryTimes?: number;
-    codesToRetryOn?: Array<number>;
-    delay?: number;
+  retryTimes?: number;
+  delay?: number;
+  canRetryPredicate: (err: any) => boolean
 }
 
-
-function decideIfCanRetry(
-    error: any,
-    emissionIndex: number,
-    delay: number,
-    maxRetryTimes: number,
-    userSpecifiedRetryCodes: boolean,
-    codesToRetryOn: number[]
-): Observable<any> {
-    const currentRetry = emissionIndex + 1; // indexes start at 0
-    const exponentialBackoffDelay = currentRetry * delay;
-    const weMaxedOutRetries = currentRetry > maxRetryTimes;
-    // We've maxed out our retries; throw the error no matter what!
-    if (weMaxedOutRetries) {
-      return throwError(error);
-    }
-    // We still have retries; we should check the error status code if
-    // 1. the developer specified status codes AND it's an http error.
-    const shouldCheckStatusCode = userSpecifiedRetryCodes && error instanceof HttpErrorResponse;
-    if (shouldCheckStatusCode) {
-      const httpErr = error as HttpErrorResponse;
-      // We can retry, if the current error code is inside the passed list
-      const canRetryOnCurrentHttpCode = codesToRetryOn?.includes(httpErr.status) ?? false;
-      if (canRetryOnCurrentHttpCode) {
-        return timer(exponentialBackoffDelay);
-      } else {
-        return throwError(error);
-      }
-    }
-    // The error wasn't an HTTP error, we're gonna retry after the delay
-    return timer(exponentialBackoffDelay);
+export interface NGRetryOptions extends RetryOptions {
+  codesToRetryOn?: Array<number>;
+  canRetryPredicate(err: any) {
+    const status = err?.status ?? -1
+    const safeCodes = this.codesToRetryOn ?? []
+    if(safeCodes.length === 0) return false
+    return safeCodes.includes(status)
   }
 }
 
 
+function decideIfCanRetry(
+  error: any,
+  emissionIndex: number,
+  delay: number,
+  maxRetryTimes: number,
+  canRetryPredicate: (err: any) => boolean
+): Observable<any> {
+  const currentRetry = emissionIndex + 1; // indexes start at 0
+  const exponentialBackoffDelay = currentRetry * delay;
+  const weMaxedOutRetries = currentRetry > maxRetryTimes;
+  // We've maxed out our retries; throw the error no matter what!
+  if (weMaxedOutRetries) {
+    return throwError(error);
+  }
+  
+  return (
+    // We still have retries; we should retry
+    canRetryPredicate(error)
+      ? timer(exponentialBackoffDelay)
+      : throwError(error)
+  )
+}
+
+
 /**
- * Custom implementation of the rxjs retryWhen.
+ * Custom implementation of the rxjs retryWhen. 
+ * You may us NGRetryOptions to assume the error is an HttpErrorResponse from Angular
  * Simply use it in your pipe() method like:
  *
  * @example
  * obs$.pipe(
  *    retryWith({
  *      delay: 500,
- *      codesToRetryOn: [500],
  *      retryTimes: 3
  *    }),
  *    catchError( err => {…})
@@ -62,7 +62,7 @@ function decideIfCanRetry(
  * - an array of status codes where retrying on makes sense and
  * @returns the custom implementation of retryWhen with exponential backoff
  */
-export function retryWith<T>(options: RetryOptions): MonoTypeOperatorFunction<T> {
+export function retryWith<T, Opts extends RetryOptions>(options: Opts): MonoTypeOperatorFunction<T> {
     // If unspecified, don't delay between retries
     const delay = options.delay ?? 0;
     // If unspecified, don't match any statusCode
@@ -73,8 +73,7 @@ export function retryWith<T>(options: RetryOptions): MonoTypeOperatorFunction<T>
     return retryWhen<T>(errStream$ => errStream$.pipe(
         mergeMap((error, emissionIndex) =>decideIfCanRetry(
             error, emissionIndex, delay,
-            maxRetryTimes, userSpecifiedRetryCodes,
-            options.codesToRetryOn
+            maxRetryTimes, options.canRetryPredicate
         ))
     ));
 }
