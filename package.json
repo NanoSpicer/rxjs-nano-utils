@@ -1,14 +1,17 @@
 {
   "name": "@nanospicer/rxjs-utils",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "A very small set of RxJs utilities that I often use on my Angular apps",
-  "main": "index.ts",
+  "main": "./lib/index.js",
+  "types": ".lib/types/index.d.ts",
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
     "start": "nodemon --exec ts-node src/index.ts",
+    "clean": "rm -rf lib",
     "build": "npx tsc -p .",
+    "prepublish": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
