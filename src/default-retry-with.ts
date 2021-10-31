@@ -7,11 +7,12 @@ import {retryWith} from './retry-with'
  * codesToRetryOn: [500],
  * retryTimes: 3
  */
-export function defaultRetryLogic<T>(canRetryPredicate: (err: any) => boolean): MonoTypeOperatorFunction<T> {
+export function defaultRetryLogic<T>(canRetry?: (err: any) => boolean): MonoTypeOperatorFunction<T> {
     return retryWith({
         delay: 500,
         retryTimes: 2,
-        canRetryPredicate
+        // Always retry by default
+        canRetryPredicate: canRetry ?? (() => true)
     })
 }
 
@@ -22,15 +23,23 @@ export function defaultRetryLogic<T>(canRetryPredicate: (err: any) => boolean): 
  * codesToRetryOn: [500],
  * retryTimes: 3
  */
-export function ngDefaultRetryLogic<T>(codesToRetryOn: Array<number> = [500]): MonoTypeOperatorFunction<T> {
+export function ngDefaultRetryLogic<T>(
+    codesToRetryOn: Array<number> = [500],
+    canRetry?: (err: any, codes: Array<number>) => boolean
+): MonoTypeOperatorFunction<T> {
+    const safeCodes = codesToRetryOn ?? []
+    const defaultImpl = (err: any, codes: Array<number>) => {
+        const status = err.status ?? -1
+        if(codes.length === 0) return false
+        return codes.includes(status)
+    }
     return retryWith({
         delay: 500,
         retryTimes: 2,
-        canRetryPredicate(err: any) {
-            const status = err?.status ?? -1
-            const safeCodes = codesToRetryOn ?? []
-            if(safeCodes.length === 0) return false
-            return safeCodes.includes(status)
-        }
+        canRetryPredicate: (err: any) => (
+            canRetry != null
+                ? canRetry(err, safeCodes) 
+                : defaultImpl(err, safeCodes)
+        )
     })
 }
