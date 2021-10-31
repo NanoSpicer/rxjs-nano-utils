@@ -34,6 +34,43 @@ From a given stream returns three streams:
 * `error$` only emits an error on the regular pipeline if the source stream emits an error
 * `loading$` emits `true` when the source observable is still processing and false when it sends data, an error or completes
 
+It's really useful to use this one to match your components full state:
+
+```html
+<!-- component.html -->
+<div>
+  <loading-spinner *ngIf="loading$|async"></loading-spinner>
+  <app-error *ngIf="error$|async as err" [error]="err></app-error>
+  <div *ngIf="data$|async as data"> {{data | json }}</div>
+</div>
+```
+
+```typescript
+@Component({...})
+export class YourComponent implements OnInit {
+  
+  loading$: Observable<boolean>
+  error$: Observable<any>
+  data$: Observable<Type>
+  
+  constructor(
+    private actRoute: ActivatedRoute, 
+    private apiService: ApiService
+  ) {
+    const dataStream = this.actRoute.paramMap.pipe(
+      map(params => params.get('id')),
+      switchMap(id => this.apiService.get(id))
+    )
+    
+    const { data$, error$, loading$ } = streamsOf(dataStream)
+    
+    this.data$ = data; this.error$ = error; this.loading$ = loading
+  
+  }
+
+}
+```
+
 
 ## Retry with and defaultRetryLogic
 
