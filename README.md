@@ -72,9 +72,14 @@ export class YourComponent implements OnInit {
 ```
 
 
-## Retry with and defaultRetryLogic
+## retryWith, defaultRetryLogic and ngDefaultRetryLogic
 
 Adds retry logic with a certain criteria which is passed by the `RetryOptions` interface.
+
+
+* `retryWith` (options). It's a wrapper that hides a little bit the RxJS boilerplate that one needs to write in order to get retries on a stream
+* `defaultRetryLogic()` is a wrapper on top of the previous operation setting `retries: 2, delay: 500ms` you may pass a callback to determine whether a retry should happen based on the error that just got emitted.
+* `ngDefaultRetryLogic()` yet another wrapper on the previous one. This one assumes that the shape of the error is of an `HttpErrorResponse` and it lets you to pass a list of http error codes where to perform a retry; by default it only retries on a 500 error code.
 
 ```typescript
 
@@ -90,6 +95,7 @@ this.http.get(...).pipe(
   ngDefaultRetryLogic() // Only retries if the backend returns a 500
 )
 ```
+
 
 
 
