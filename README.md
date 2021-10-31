@@ -72,6 +72,105 @@ export class YourComponent implements OnInit {
 ```
 
 
+From this example, how does it look?
+
+### When everything goes alright! 🆗
+
+This code...
+
+```typescript 
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent {
+  loading$: Observable<boolean>;
+  obs$: Observable<any> 
+  error$: Observable<any>
+
+  constructor(
+    httpClient: HttpClient
+  ) {
+    const {data$, loading$, error$} = streamsOf(
+      httpClient.get('https://pokeapi.co/api/v2/pokemon/mew').pipe(
+        delay(1000)
+      )
+    )
+    this.obs$ = data$;
+    this.error$ = error$;
+    this.loading$ = loading$
+  }
+}
+```
+
+results in...
+<img align="center" src="media/data$.gif"/>
+
+### When something bad happens 💥
+
+This code...
+
+```typescript 
+@Component({...})
+export class AppComponent {
+  loading$: Observable<boolean>;
+  obs$: Observable<any> 
+  error$: Observable<any>
+
+  constructor(
+    httpClient: HttpClient
+  ) {
+    const {data$, loading$, error$} = streamsOf(
+      httpClient.get('https://pokeapi.co/api/v2/pokemon/mew').pipe(
+        delay(1000), // Simulate latency ⌛
+        // force an error 💥
+        switchMapTo(throwError({message: 'Something really unexpected happenned', status: 500}))
+      )
+    )
+    this.obs$ = data$;
+    this.error$ = error$;
+    this.loading$ = loading$
+  }
+}
+```
+
+results in...
+
+
+<img align="center" src="media/error$.gif"/>
+
+### When we want to retry an action
+
+This code...
+```typescript 
+@Component({...})
+export class AppComponent {
+  loading$: Observable<boolean>;
+  obs$: Observable<any> 
+  error$: Observable<any>
+
+  constructor(
+    httpClient: HttpClient
+  ) {
+    const {data$, loading$, error$} = streamsOf(
+      httpClient.get('http://httpstat.us/500').pipe(
+        delay(1000), // Simulate latency
+        ngDefaultRetryLogic()
+      )
+    )
+    this.obs$ = data$;
+    this.error$ = error$;
+    this.loading$ = loading$
+  }
+}
+```
+
+results in...
+<img align="center" src="media/ngDefaultRetries.gif"/>
+
+
 ## retryWith, defaultRetryLogic and ngDefaultRetryLogic
 
 Adds retry logic with a certain criteria which is passed by the `RetryOptions` interface.
