@@ -23,7 +23,9 @@
     "rxjs": "^6.6.0"
   },
   "devDependencies": {
+    "@types/jest": "^27.0.2",
     "jest": "^27.3.1",
+    "jest-marbles": "^2.5.1",
     "nodemon": "^2.0.14",
     "ts-jest": "^27.0.7",
     "ts-node": "^10.4.0",
