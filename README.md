@@ -1,4 +1,6 @@
-# RxJs utils
+<img src="media/rxjslogo.png" align="center">
+
+<h1 align="center">RxJs utils</h1>
 A very small set of RxJs utilities that I often use on my Angular apps.
 
 
