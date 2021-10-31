@@ -1,6 +1,6 @@
 {
   "name": "@nanospicer/rxjs-utils",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "A very small set of RxJs utilities that I often use on my Angular apps",
   "main": "./lib/index.js",
   "types": "./lib/types/index.d.ts",
