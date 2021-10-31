@@ -1,4 +1,6 @@
-<img src="media/rxjslogo.png" align="center">
+<div align="center">
+  <img src="media/rxjslogo.png" align="center">
+</div>
 
 <h1 align="center">RxJs utils</h1>
 A very small set of RxJs utilities that I often use on my Angular apps.
@@ -108,7 +110,11 @@ export class AppComponent {
 ```
 
 results in...
-<img align="center" src="media/data$.gif"/>
+
+<div align="center">
+  <img  src="media/data$.gif"/>
+</div>
+
 
 ### When something bad happens 💥
 
@@ -140,8 +146,9 @@ export class AppComponent {
 
 results in...
 
-
-<img align="center" src="media/error$.gif"/>
+<div align="center">
+  <img  src="media/error$.gif"/>
+</div>
 
 ### When we want to retry an action
 
@@ -170,7 +177,10 @@ export class AppComponent {
 ```
 
 results in...
-<img align="center" src="media/ngDefaultRetries.gif"/>
+
+<div align="center">
+  <img  align="center" src="media/ngDefaultRetries.gif"/>
+</div>
 
 
 ## retryWith, defaultRetryLogic and ngDefaultRetryLogic
