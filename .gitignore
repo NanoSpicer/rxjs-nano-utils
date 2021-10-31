@@ -105,6 +105,3 @@ dist
 
 # Output files
 lib
-*.map
-*.d.ts
-*.js
